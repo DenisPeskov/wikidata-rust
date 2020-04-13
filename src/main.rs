@@ -33,16 +33,23 @@ struct Relation {
     title: Option<String>
 }
 
-
+//needs to be updated to retain other values
 fn parse_value(datatype: &str, mainsnak: &Value) -> Option<String> {
     match datatype {
+        //find mainsnaks that have monolingualtext as a field
         "monolingualtext" => {
+            //in the higher level mainsnak take the text e.g. "text":"Scottish"
+            // convert this to string?  
             mainsnak["datavalue"]["value"]["text"].as_str().map(|s| s.to_string())
         },
+        
+        //find mainsnaks that have the following 5 fields.  extract the id
         "wikibase-item" | "wikibase-property" | "wikibase-lexeme" | "wikibase-form"
             | "wikibase-sense" => {
             mainsnak["datavalue"]["value"]["id"].as_str().map(|s| s.to_string())
         }
+        
+        // for every other other field, do nothing?  
         "external-id" | "url" | "globe-coordinate" | "quantity"
             | "string" | "commonsMedia" | "time" | "math" | "geo-shape"
             | "musical-notation" | "tabular-data" => None,
@@ -53,6 +60,8 @@ fn parse_value(datatype: &str, mainsnak: &Value) -> Option<String> {
 }
 
 
+//process snak_values.  expect a "property" field and other optional fields per parse_value
+//what some Some(Relation{...}) do?
 fn extract_claims(subject_id: &String, maybe_title: Option<&str>, claim_snaks: Values) -> Vec<Relation> {
     claim_snaks.flat_map(|raw_snak_values| {
         let snak_values = raw_snak_values.as_array().unwrap();
@@ -78,6 +87,8 @@ fn extract_claims(subject_id: &String, maybe_title: Option<&str>, claim_snaks: V
     }).collect()
 }
 
+
+//this should be unchanged.  ID and title should be universal.  
 fn line_to_relations(line: &str) -> Vec<Relation> {
     if line.starts_with("[") || line.starts_with("]") {
         Vec::new()
@@ -97,6 +108,7 @@ fn line_to_relations(line: &str) -> Vec<Relation> {
     }
 }
 
+//should be fine as is
 fn filename_to_relation_out(filename: &str) -> () {
     let file = File::open(filename).expect("file not found");
     BufReader::new(file).lines().flat_map(|l| {
@@ -110,6 +122,7 @@ fn filename_to_relation_out(filename: &str) -> () {
 }
 
 
+//should be fine as is
 fn main() {
     let matches = App::new("wikidata")
                           .version("1.0")
